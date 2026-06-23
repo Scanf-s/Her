@@ -1,7 +1,4 @@
-// Package understander turns a user's turn (text now, audio later) into a
-// streamed assistant reply. Phase 0 ships a text-only client; the interface is
-// audio-ready so later phases can swap the implementation without touching
-// callers.
+// Package understander turns a user's turn (text now, audio later) into a streamed assistant reply.
 package understander
 
 import "context"
