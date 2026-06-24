@@ -17,7 +17,7 @@ func main() {
 	mux.Handle("/ws", server.NewHandler(u))
 	mux.Handle("/", http.FileServer(http.Dir("web")))
 
-	log.Printf("She is listening on %s (LLM %s, model %s)", cfg.Addr, cfg.LLMEndpoint, cfg.LLMModel)
+	log.Printf("Web server is running on %s and She is listening on %s, model %s)", cfg.Addr, cfg.LLMEndpoint, cfg.LLMModel)
 	if err := http.ListenAndServe(cfg.Addr, mux); err != nil {
 		log.Fatal(err)
 	}
