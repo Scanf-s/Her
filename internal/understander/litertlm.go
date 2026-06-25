@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -42,7 +43,19 @@ type chatRequest struct {
 // chatMessage DTO is following https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create spec
 type chatMessage struct {
 	Role    string `json:"role"`
-	Content string `json:"content"`
+	Content any    `json:"content"`
+}
+
+// contentPart DTO is following https://developers.openai.com/api/reference/python/resources/chat/subresources/completions/methods/create
+type contentPart struct {
+	Type       string      `json:"type"`
+	InputAudio *inputAudio `json:"input_audio,omitempty"`
+}
+
+// inputAudio DTO is following https://developers.openai.com/api/reference/python/resources/chat/subresources/completions/methods/create#(resource)%20chat.completions%20%3E%20(model)%20chat_completion_content_part_input_audio%20%3E%20(schema)%20%3E%20(property)%20input_audio
+type inputAudio struct {
+	Data   string `json:"data"`
+	Format string `json:"format"` // wav, mp3 (wav preferred in Gemma4)
 }
 
 // streamChunk follows the OpenAI Streaming event spec
@@ -72,7 +85,19 @@ func (l *LiteRTLM) Respond(ctx context.Context, history []Message, turn UserTurn
 	}
 
 	// Append user provided message
-	messages = append(messages, chatMessage{Role: RoleUser, Content: turn.Text})
+	if turn.Audio != nil {
+		messages = append(messages, chatMessage{Role: RoleUser, Content: []contentPart{
+			{
+				Type: "input_audio",
+				InputAudio: &inputAudio{
+					Data:   base64.StdEncoding.EncodeToString(turn.Audio),
+					Format: "wav",
+				},
+			},
+		}})
+	} else {
+		messages = append(messages, chatMessage{Role: RoleUser, Content: turn.Text})
+	}
 
 	// HTTP request setup
 	body, err := json.Marshal(
@@ -147,5 +172,10 @@ func (l *LiteRTLM) Respond(ctx context.Context, history []Message, turn UserTurn
 	}()
 
 	// Stream the token respond
-	return Reply{UserTranscript: turn.Text, Tokens: tokens}, nil
+	transcript := turn.Text
+	if turn.Audio != nil {
+		// Will be implemented after adding Kokoro interface (TTS)
+		transcript = "[Audio Message]"
+	}
+	return Reply{UserTranscript: transcript, Tokens: tokens}, nil
 }

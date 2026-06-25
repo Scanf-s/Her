@@ -24,7 +24,7 @@ func New(u understander.Understander) *Session {
 
 // Turn sends one user message and returns a channel that streams the assistant reply tokens.
 // When the channel closes, both the user message and the full assistant reply will be appended to the conversation history.
-func (s *Session) Turn(ctx context.Context, text string) (<-chan string, error) {
+func (s *Session) Turn(ctx context.Context, userInput understander.UserTurn) (<-chan string, error) {
 
 	// A history should be locked by mutex.
 	// Because of parallel write request on below goroutine to the history list.
@@ -34,7 +34,8 @@ func (s *Session) Turn(ctx context.Context, text string) (<-chan string, error) 
 
 	// Request to the LLM with user's message
 	// Reply message from LLM will be streamed through channel
-	reply, err := s.u.Respond(ctx, hist, understander.UserTurn{Text: text})
+	// Audio type takes precedence over Text type
+	reply, err := s.u.Respond(ctx, hist, userInput)
 	if err != nil {
 		return nil, err
 	}
@@ -55,10 +56,10 @@ func (s *Session) Turn(ctx context.Context, text string) (<-chan string, error) 
 			}
 		}
 
-		// history array write mutex lock
+		// Mutex lock for writing on the history array
 		s.mu.Lock()
 		s.history = append(s.history,
-			understander.Message{Role: understander.RoleUser, Content: text},
+			understander.Message{Role: understander.RoleUser, Content: reply.UserTranscript},
 			understander.Message{Role: understander.RoleAssistant, Content: b.String()},
 		)
 		s.mu.Unlock()

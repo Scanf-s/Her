@@ -21,7 +21,11 @@ func NewHandler(u understander.Understander) *Handler {
 }
 
 type clientMsg struct {
+	// Text type user input
 	Text string `json:"text"`
+
+	// Audio type user input
+	Audio []byte `json:"audio"`
 }
 
 type serverMsg struct {
@@ -36,6 +40,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer conn.CloseNow()
+	conn.SetReadLimit(16 * 1024 * 1024) // 16MB read limit for audio input
 
 	// Initialize session
 	ctx := r.Context()
@@ -50,7 +55,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Send user text (session will stream the reply token from the LLM interface)
-		tokens, err := sess.Turn(ctx, input.Text)
+		tokens, err := sess.Turn(ctx, understander.UserTurn{Text: input.Text, Audio: input.Audio})
 		if err != nil {
 			_ = wsjson.Write(ctx, conn, serverMsg{Type: "error", Text: err.Error()})
 			continue
