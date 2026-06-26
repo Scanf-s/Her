@@ -75,7 +75,6 @@ capable).
 You can swap the model by modifying `HER_LLM_MODEL` configuration.
 
 > **Voice input** needs the CPU audio backend for this model. 
-> If a voice turn fails with a backend error, set `HER_LLM_MODEL=gemma4-e4b,cpu`.
 
 ### Run
 
