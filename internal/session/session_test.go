@@ -33,7 +33,7 @@ func TestSession_Turn_streamsTokens(t *testing.T) {
 	stub := &stubUnderstander{tokens: []string{"He", "llo"}}
 	s := session.New(stub)
 
-	tokens, err := s.Turn(context.Background(), "hi")
+	tokens, err := s.Turn(context.Background(), understander.UserTurn{Text: "hi"})
 	if err != nil {
 		t.Fatalf("Turn: %v", err)
 	}
@@ -50,11 +50,11 @@ func TestSession_Turn_recordsHistory(t *testing.T) {
 	stub := &stubUnderstander{tokens: []string{"Hello"}}
 	s := session.New(stub)
 
-	first, _ := s.Turn(context.Background(), "hi")
+	first, _ := s.Turn(context.Background(), understander.UserTurn{Text: "hi"})
 	for range first { // drain so the assistant message is recorded
 	}
 
-	second, _ := s.Turn(context.Background(), "bye")
+	second, _ := s.Turn(context.Background(), understander.UserTurn{Text: "bye"})
 	for range second {
 	}
 
