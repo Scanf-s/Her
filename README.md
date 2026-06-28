@@ -53,7 +53,7 @@ access token.
 
 ```bash
 # 1. Install the LiteRT-LM CLI (pulls in the `hf` Hugging Face CLI as a dependency)
-pip install litert-lm
+pip install litert-lm # or uv tool install litert-lm
 
 # 2. Accept the license once, signed in, at the model page:
 #    https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm
@@ -63,10 +63,7 @@ hf auth login                       # paste the token when prompted
 # (or non-interactively: export HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxx)
 
 # 4. Download + register the model under the name Her expects (gemma4-e4b)
-litert-lm import \
-  --from-huggingface-repo=litert-community/gemma-4-E4B-it-litert-lm \
-  model.litertlm \
-  gemma4-e4b
+litert-lm import --from-huggingface-repo=litert-community/gemma-4-E4B-it-litert-lm gemma4-e4b
 ```
 
 `litert-lm serve --port 8081` then serves the imported model, and Her reaches it via the default `HER_LLM_MODEL=gemma4-e4b`.
